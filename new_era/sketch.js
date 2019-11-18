@@ -114,6 +114,10 @@ function mouseClicked(){
   w = (w + 1) % words.length;
 }
 
+function touchEnded() {
+  w = (w + 1) % words.length;
+}
+
 function windowResized(){
   resizeCanvas(windowWidth, windowHeight);
   poly = points.map(p => translatePoint(p));
