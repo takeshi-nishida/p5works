@@ -1,4 +1,4 @@
-const words = [" 令和 ", " 元年 ", " 欅坂 ", " ４６ ", " 紅白 ", " ◢ "];
+const words = [" 令和 ", " 元年 ", " 欅坂 ", " ４６ ", "祝", " 紅白 ", " ◢ "];
 
 let font;
 let points, bounds, poly;
@@ -16,11 +16,11 @@ function setup(){
   bounds = [];
   poly = [];
   for(let i = 0; i < words.length; i++){
-    points.push(font.textToPoints(words[i], 0, 0, 64, {
+    points.push(font.textToPoints(words[i], 0, 0, 128, {
       sampleFactor: 2,
-      simplifyThreshold: 0
+      simplifyThreshold: 0.1
     }));
-    bounds.push(font.textBounds(words[i], 0, 0, 64));
+    bounds.push(font.textBounds(words[i], 0, 0, 128));
     poly.push(points[i].map(p => translatePoint(p, bounds[i])));
   }
 
@@ -42,7 +42,7 @@ function draw(){
     const hit = collidePointPoly(b.x, b.y, poly[w]);
     const dcolor = abs(hue(b.c) - 114) / 360;
     const d = w % 3 == 2 ? (1 - dcolor) : dcolor;
-    const f = hit ? d * 0.08 + 0.01: 1;
+    const f = hit ? d * 0.07 + 0.001: 1;
     animateBall(b, f);
     drawBall(b);
   }
@@ -75,7 +75,7 @@ function animateBall(b, f){
   }
   b.x = constrain(b.x, 0, width);
   b.y = constrain(b.y, 0, height);
-  if(bounced) b.r *= 0.8;
+  if(bounced) b.r *= 0.7;
 }
 
 function drawBall(b){
