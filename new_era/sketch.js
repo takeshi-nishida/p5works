@@ -110,9 +110,9 @@ function translatePoint(p, bounds){
   return createVector(x, y);
 }
 
-function mouseClicked(){
-  w = (w + 1) % words.length;
-}
+// function mouseClicked(){
+//   w = (w + 1) % words.length;
+// }
 
 function touchEnded() {
   w = (w + 1) % words.length;
