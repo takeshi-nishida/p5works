@@ -1,27 +1,16 @@
-const words = [" 令和 ", " 元年 ", " 欅坂 ", " ４６ ", "祝", " 紅白 ", " ◢ "];
+const words = [" いつも ", " ありがとう ", " 欅坂46 "];
 
 let font;
-let points, bounds, poly;
+let buffers;
 let balls;
 let w = 0;
-
-function preload(){
- font = loadFont("NotoSansCJKjp-Regular.otf");
-}
 
 function setup(){
   createCanvas(windowWidth, windowHeight);
 
-  points = [];
-  bounds = [];
-  poly = [];
+  buffers = [];
   for(let i = 0; i < words.length; i++){
-    points.push(font.textToPoints(words[i], 0, 0, 128, {
-      sampleFactor: 2,
-      simplifyThreshold: 0.1
-    }));
-    bounds.push(font.textBounds(words[i], 0, 0, 128));
-    poly.push(points[i].map(p => translatePoint(p, bounds[i])));
+    buffers.push(createBuffer(words[i]));
   }
 
   balls = [];
@@ -32,32 +21,28 @@ function setup(){
 function draw(){
   background(0);
 
-  if(keyIsPressed){
-    drawPoly(poly[w]);
-    return;
-  }
-
   for(let i = 0; i < balls.length; i++){
     const b = balls[i];
-    const hit = collidePointPoly(b.x, b.y, poly[w]);
+    const hit = getBufferColor(buffers[w], b.x, b.y)[3] > 0;
     const dcolor = abs(hue(b.c) - 114) / 360;
-    const d = w % 3 == 2 ? (1 - dcolor) : dcolor;
-    const f = hit ? d * 0.07 + 0.001: 1;
+    const f = hit ? dcolor * 0.07 + 0.001: 1;
     animateBall(b, f);
     drawBall(b);
   }
 
-  balls = balls.filter(b => b.r > 4);
+  if(frameCount % 1000 == 0) balls = balls.filter(b => b.r > 8);
 
-  const n = 3;
-  for(let i = 0; i < n; i++){
-    const x = width * (i + 1) / (n + 1);
-    const y = map(sin(millis() % 1000), -1, 1, 0, 1) * height;
-    const angle = random(0, TWO_PI);
-    const vx = cos(angle) * 10;
-    const vy = sin(angle) * 10;
-    const size = random(10, 20);
-    balls.push(randomColorBall(x, y, vx, vy, size));
+  if(balls.length < 2000){
+    const n = 3;
+    for(let i = 0; i < n; i++){
+      const x = width * (i + 1) / (n + 1);
+      const y = map(sin(millis() % 1000), -1, 1, 0, 1) * height;
+      const angle = random(0, TWO_PI);
+      const vx = cos(angle) * 10;
+      const vy = sin(angle) * 10;
+      const size = random(10, 30);
+      balls.push(randomColorBall(x, y, vx, vy, size));
+    }
   }
 }
 
@@ -83,15 +68,6 @@ function drawBall(b){
   ellipse(b.x, b.y, b.r);
 }
 
-function drawPoly(poly){
-  beginShape();
-  for(let i = 0; i < poly.length; i++){
-    const p = poly[i];
-    vertex(p.x, p.y);
-  }
-  endShape(CLOSE);
-}
-
 function randomColorBall(x, y, vx, vy, r){
   const hue = randomGaussian(114, 100);
   const c = color(constrain(hue, 0, 360), 55, 73, 0.8);
@@ -104,21 +80,30 @@ function mouseDragged(){
   balls.push(randomColorBall(mouseX, mouseY, vx, vy, 10));
 }
 
-function translatePoint(p, bounds){
-  const x = (p.x - bounds.x) * width / bounds.w;
-  const y = (p.y - bounds.y) * height / bounds.h;
-  return createVector(x, y);
-}
-
-// function mouseClicked(){
-//   w = (w + 1) % words.length;
-// }
-
 function touchEnded() {
   w = (w + 1) % words.length;
 }
 
 function windowResized(){
   resizeCanvas(windowWidth, windowHeight);
-  poly = points.map(p => translatePoint(p));
+}
+
+function createBuffer(text){
+  push();
+  const size = 128;
+  textSize(size);
+  const w = textWidth(text);
+  const h = textDescent() + textAscent();
+  const buffer = createGraphics(w, h);
+  buffer.textSize(size);
+  buffer.textAlign(CENTER, CENTER);
+  buffer.text(text, w / 2, h / 2);
+  pop();
+  return buffer;
+}
+
+function getBufferColor(buffer, sx, sy){
+  const x = map(sx, 0, width, 0, buffer.width);
+  const y = map(sy, 0, height, 0, buffer.height);
+  return buffer.get(x, y);
 }
